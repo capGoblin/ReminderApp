@@ -13,6 +13,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.Locale;
 
 public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapter.ViewHolder> {
@@ -40,6 +41,14 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapte
         holder.content.setText(reminder.getContent());
         SimpleDateFormat dateFormat = new SimpleDateFormat("MMM dd yyyy EEE", Locale.getDefault());
         holder.date.setText(dateFormat.format(reminder.getDate()));
+
+        if (reminder.getDate().before(new Date())) {
+            holder.editButton.setEnabled(false);
+            holder.editButton.setImageResource(R.drawable.disabled_baseline_edit_24);
+        } else {
+            holder.editButton.setEnabled(true);
+            holder.editButton.setImageResource(R.drawable.baseline_edit_24);
+        }
     }
 
     @Override
