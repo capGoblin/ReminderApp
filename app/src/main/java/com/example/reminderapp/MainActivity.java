@@ -1,80 +1,97 @@
 package com.example.reminderapp;
 
+import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.os.Bundle;
 
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
-import com.google.android.material.snackbar.Snackbar;
 
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.util.Log;
 import android.view.View;
 
-import androidx.navigation.NavController;
-import androidx.navigation.Navigation;
+import androidx.appcompat.widget.Toolbar;
 import androidx.navigation.ui.AppBarConfiguration;
-import androidx.navigation.ui.NavigationUI;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.reminderapp.databinding.ActivityMainBinding;
-import com.example.reminderapp.CreateReminderActivity;
 
 import android.view.Menu;
 import android.view.MenuItem;
 
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.Objects;
 
-public class MainActivity extends AppCompatActivity {
-
+public class MainActivity extends AppCompatActivity implements RecyclerViewInterface {
+    // TODO: create global storage, editReminAct, some db?/animations/theme/ui?
     private AppBarConfiguration appBarConfiguration;
     private ActivityMainBinding binding;
 
+    private RecyclerViewAdapter adapter;
+    public ArrayList<ReminderModel> reminders = new ArrayList<>();
+
+    @SuppressLint("NotifyDataSetChanged")
+    ActivityResultLauncher<Intent> createReminderActivityResultLauncher = registerForActivityResult(
+            new ActivityResultContracts.StartActivityForResult(),
+            result -> {
+                if (result.getResultCode() == RESULT_OK) {
+                    Intent data = result.getData();
+                    if (data != null) {
+                        ReminderModel reminder = data.getParcelableExtra("newReminder");
+                        reminders.add(reminder);
+                        Log.d("MainActivity", "onActivityResult: " + reminders);
+                        adapter.notifyDataSetChanged();
+                    }
+                }
+            });
+    private int position;
+    @SuppressLint("NotifyDataSetChanged")
+    ActivityResultLauncher<Intent> editReminderActivityResultLauncher = registerForActivityResult(
+            new ActivityResultContracts.StartActivityForResult(),
+            result -> {
+                if (result.getResultCode() == RESULT_OK) {
+                    Intent data = result.getData();
+                    if (data != null) {
+                        ReminderModel reminder = data.getParcelableExtra("editedReminder");
+                        reminders.set(position, reminder);
+                        Log.d("MainActivity", "onActivityEdit: " + reminders);
+                        adapter.notifyDataSetChanged();
+                    }
+                }
+            });
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-//        super.onCreate(savedInstanceState);
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 //        binding = ActivityMainBinding.inflate(getLayoutInflater());
 //        setContentView(binding.getRoot());
 
-//        setSupportActionBar(binding.toolbar);
-        ArrayList<ReminderModel> dummyList = new ArrayList<>();
-
-        // Add dummy data
-        dummyList.add(new ReminderModel("Meeting", "Prepare presentation", new Date()));
-        dummyList.add(new ReminderModel("Call Mom", "Wish her happy birthday", new Date()));
-        dummyList.add(new ReminderModel("Grocery Shopping", "Buy milk, eggs, and bread", new Date()));
+        Toolbar tb = findViewById(R.id.toolbar);
+        setSupportActionBar(tb);
+        reminders.add(new ReminderModel("Meeting", "Prepare presentation", new Date()));
+        reminders.add(new ReminderModel("Call Mom", "Wish her happy birthday", new Date()));
+        reminders.add(new ReminderModel("Grocery Shopping", "Buy milk, eggs, and bread", new Date()));
 
         RecyclerView recyclerView = findViewById(R.id.recyclerView);
-        RecyclerViewAdapter adapter = new RecyclerViewAdapter(this, dummyList);
+        adapter = new RecyclerViewAdapter(this, this, reminders);
 
         recyclerView.setAdapter(adapter);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
 
-
-        // Find the FloatingActionButton
         FloatingActionButton fab = findViewById(R.id.fab);
-
-        // Set OnClickListener to start CreateReminderActivity
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 Intent intent = new Intent(MainActivity.this, CreateReminderActivity.class);
-                startActivity(intent);
+                createReminderActivityResultLauncher.launch(intent);
             }
         });
-//        NavController navController = Navigation.findNavController(this, R.id.nav_host_fragment_content_main);
-//        appBarConfiguration = new AppBarConfiguration.Builder(navController.getGraph()).build();
-//        NavigationUI.setupActionBarWithNavController(this, navController, appBarConfiguration);
-//
-//        binding.fab.setOnClickListener(new View.OnClickListener() {
-//            @Override
-//            public void onClick(View view) {
-//                startActivity(new Intent(MainActivity.this, CreateReminderActivity.class));
-//            }
-//        });
     }
 
     @Override
@@ -99,10 +116,11 @@ public class MainActivity extends AppCompatActivity {
         return super.onOptionsItemSelected(item);
     }
 
-//    @Override
-//    public boolean onSupportNavigateUp() {
-//        NavController navController = Navigation.findNavController(this, R.id.nav_host_fragment_content_main);
-//        return NavigationUI.navigateUp(navController, appBarConfiguration)
-//                || super.onSupportNavigateUp();
-//    }
+    @Override
+    public void onEditClick(int position) {
+        this.position = position;
+        Intent intent = new Intent(MainActivity.this, EditReminderActivity.class);
+        intent.putExtra("editReminder", reminders.get(position));
+        editReminderActivityResultLauncher.launch(intent);
+    }
 }
