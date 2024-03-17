@@ -21,11 +21,13 @@ public class AlarmReceiver extends BroadcastReceiver {
         intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
         String title = intent.getStringExtra("title");
         String content = intent.getStringExtra("content");
-        PendingIntent pendingIntent = PendingIntent.getActivity(context, 0, i, 0);
+        PendingIntent pendingIntent = PendingIntent.getActivity(context, 0, i, PendingIntent.FLAG_MUTABLE);
         createNotification(context, pendingIntent, title, content);
     }
 
     private void createNotification(Context context, PendingIntent pd, String title, String content) {
+        System.out.println("TITLE" + title);
+        System.out.println("CONTENT" + content);
         NotificationCompat.Builder builder = new NotificationCompat.Builder(context, "reminder_channel")
                 .setSmallIcon(R.drawable.baseline_access_alarm_24)
                 .setContentTitle(title)

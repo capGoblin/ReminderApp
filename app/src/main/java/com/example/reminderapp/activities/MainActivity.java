@@ -18,8 +18,10 @@ import com.example.reminderapp.adapters.RecyclerViewAdapter;
 
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.provider.Settings;
 import android.util.Log;
 
 import androidx.navigation.ui.AppBarConfiguration;
@@ -45,11 +47,13 @@ public class MainActivity extends AppCompatActivity implements RecyclerViewInter
     ActivityResultLauncher<Intent> createReminderActivityResultLauncher = registerForActivityResult(
             new ActivityResultContracts.StartActivityForResult(),
             result -> {
+                System.out.println("here1");
                 if (result.getResultCode() == RESULT_OK) {
                     Intent data = result.getData();
                     if (data != null) {
                         ReminderModel reminder = data.getParcelableExtra("newReminder");
                         assert reminder != null;
+                        System.out.println("here2)");
                         setAlarm(reminder);
                         reminders.add(reminder);
                         Log.d("MainActivity", "onActivityResult: " + reminders);
@@ -68,12 +72,16 @@ public class MainActivity extends AppCompatActivity implements RecyclerViewInter
                     Intent data = result.getData();
                     if (data != null) {
                         ReminderModel reminder = data.getParcelableExtra("editedReminder");
+                        assert reminder != null;
+
+                        editAlarm(position, reminder);
                         reminders.set(position, reminder);
                         Log.d("MainActivity", "onActivityEdit: " + reminders);
                         adapter.notifyDataSetChanged();
                     }
                 }
             });
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -121,22 +129,40 @@ public class MainActivity extends AppCompatActivity implements RecyclerViewInter
             notificationManager.createNotificationChannel(channel);
         }
     }
-    private int reqCode = 0;
+    private int reqCode = 3;
 
     @SuppressLint("ScheduleExactAlarm")
-    private void setAlarm(ReminderModel reminder) {
+    private void setAlarm(@NonNull ReminderModel reminder, boolean isEditAlarmAtPos) {
         AlarmManager alarmManager = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
         Intent intent = new Intent(MainActivity.this, AlarmReceiver.class);
         intent.putExtra("title", reminder.getTitle());
         intent.putExtra("content", reminder.getContent());
-
-        PendingIntent pendingIntent = PendingIntent.getBroadcast(MainActivity.this, reqCode++, intent, PendingIntent.FLAG_UPDATE_CURRENT);
+        System.out.println("title form reminder" + reminder.getTitle());
+        System.out.println("content form reminder" + reminder.getContent());
+        PendingIntent pendingIntent = isEditAlarmAtPos ?
+                PendingIntent.getBroadcast(MainActivity.this, position, intent, PendingIntent.FLAG_MUTABLE) :
+                PendingIntent.getBroadcast(MainActivity.this, reqCode++, intent, PendingIntent.FLAG_MUTABLE);
         Calendar calendar = Calendar.getInstance();
         calendar.setTimeInMillis(reminder.getDate().getTime());
         alarmManager.setExact(AlarmManager.RTC_WAKEUP, calendar.getTimeInMillis(), pendingIntent);
 
         Toast.makeText(this, "Reminder set successfully", Toast.LENGTH_SHORT).show();
+    }
+    private void setAlarm(ReminderModel reminder) {
+        setAlarm(reminder, false);
+    }
+    private void editAlarm(int position, ReminderModel reminder) {
+        ReminderModel oldReminder = reminders.get(position);
 
+        cancelAlarm(oldReminder);
+        setAlarm(reminder, true);
+    }
+
+    private void cancelAlarm(ReminderModel oldReminder) {
+        AlarmManager alarmManager = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
+        Intent intent = new Intent(MainActivity.this, AlarmReceiver.class);
+        PendingIntent pendingIntent = PendingIntent.getBroadcast(MainActivity.this, position, intent, PendingIntent.FLAG_MUTABLE);
+        alarmManager.cancel(pendingIntent);
     }
 
     @Override

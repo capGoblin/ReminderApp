@@ -8,7 +8,7 @@ import androidx.annotation.NonNull;
 import java.util.Date;
 
 public class ReminderModel implements Parcelable {
-    private int id = 0;
+    private static int id = 0;
     private String title;
     private String content;
     private Date date;
@@ -17,7 +17,7 @@ public class ReminderModel implements Parcelable {
         this.title = title;
         this.content = content;
         this.date = date;
-        this.id = id++;
+        id++;
     }
 
     protected ReminderModel(Parcel in) {
@@ -61,7 +61,7 @@ public class ReminderModel implements Parcelable {
         return date;
     }
 
-    public void setDate() {
+    public void setDate(Date date) {
         this.date = date;
     }
 
