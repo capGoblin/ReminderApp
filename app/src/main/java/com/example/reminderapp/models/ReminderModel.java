@@ -1,4 +1,4 @@
-package com.example.reminderapp;
+package com.example.reminderapp.models;
 
 import android.os.Parcel;
 import android.os.Parcelable;
@@ -8,6 +8,7 @@ import androidx.annotation.NonNull;
 import java.util.Date;
 
 public class ReminderModel implements Parcelable {
+    private int id = 0;
     private String title;
     private String content;
     private Date date;
@@ -16,6 +17,7 @@ public class ReminderModel implements Parcelable {
         this.title = title;
         this.content = content;
         this.date = date;
+        this.id = id++;
     }
 
     protected ReminderModel(Parcel in) {
@@ -35,6 +37,9 @@ public class ReminderModel implements Parcelable {
             return new ReminderModel[size];
         }
     };
+    public int getId() {
+        return id;
+    }
 
     public String getTitle() {
         return title;
@@ -56,7 +61,7 @@ public class ReminderModel implements Parcelable {
         return date;
     }
 
-    public void setDate(Date date) {
+    public void setDate() {
         this.date = date;
     }
 

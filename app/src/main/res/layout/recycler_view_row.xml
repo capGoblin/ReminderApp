@@ -4,7 +4,9 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="wrap_content">
+    android:layout_height="wrap_content"
+    android:layout_marginHorizontal="10dp"
+    >
 
     <androidx.cardview.widget.CardView
         android:layout_width="match_parent"
@@ -21,37 +23,42 @@
 
             <ImageButton
                 android:id="@+id/imageButton"
-                android:layout_width="77dp"
-                android:layout_height="80dp"
+                android:layout_width="69dp"
+                android:layout_height="75dp"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintTop_toTopOf="parent"
+                android:layout_margin="1dp"
                 app:srcCompat="@drawable/baseline_edit_24" />
 
             <TextView
                 android:id="@+id/rvDate"
-                android:layout_width="85dp"
-                android:layout_height="75dp"
+                android:layout_width="99dp"
+                android:layout_height="83dp"
+                android:padding="10dp"
                 android:text="date"
                 app:layout_constraintStart_toEndOf="@id/rvTitle"
                 app:layout_constraintTop_toTopOf="parent" />
 
             <TextView
                 android:id="@+id/rvContent"
-                android:layout_width="240dp"
-                android:layout_height="48dp"
+                android:layout_width="200dp"
+                android:layout_height="53dp"
                 android:text="content"
                 app:layout_constraintBottom_toTopOf="@id/rvTitle"
                 app:layout_constraintStart_toStartOf="parent"
+                android:layout_marginLeft="10dp"
                 app:layout_constraintTop_toBottomOf="@id/rvTitle" />
 
             <TextView
                 android:id="@+id/rvTitle"
-                android:layout_width="241dp"
+                android:layout_width="200dp"
                 android:layout_height="27dp"
                 android:text="title"
                 app:layout_constraintBottom_toTopOf="@id/rvContent"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toTopOf="parent" />
+                app:layout_constraintTop_toTopOf="parent"
+                android:layout_marginLeft="10dp"
+                />
         </androidx.constraintlayout.widget.ConstraintLayout>
     </androidx.cardview.widget.CardView>
 

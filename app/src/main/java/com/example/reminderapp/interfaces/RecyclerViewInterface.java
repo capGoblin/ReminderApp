@@ -1,4 +1,4 @@
-package com.example.reminderapp;
+package com.example.reminderapp.interfaces;
 
 public interface RecyclerViewInterface {
     void onEditClick(int position);

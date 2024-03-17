@@ -1,15 +1,18 @@
-package com.example.reminderapp;
+package com.example.reminderapp.adapters;
 
 import android.content.Context;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
+
+import com.example.reminderapp.R;
+import com.example.reminderapp.interfaces.RecyclerViewInterface;
+import com.example.reminderapp.models.ReminderModel;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -39,7 +42,7 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapte
         ReminderModel reminder = reminders.get(position);
         holder.title.setText(reminder.getTitle());
         holder.content.setText(reminder.getContent());
-        SimpleDateFormat dateFormat = new SimpleDateFormat("MMM dd yyyy EEE", Locale.getDefault());
+        SimpleDateFormat dateFormat = new SimpleDateFormat("EEE MMM dd yyyy h:mm a", Locale.getDefault());
         holder.date.setText(dateFormat.format(reminder.getDate()));
 
         if (reminder.getDate().before(new Date())) {
