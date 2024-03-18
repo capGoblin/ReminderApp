@@ -7,6 +7,7 @@ import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 
@@ -29,6 +30,7 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.reminderapp.databinding.ActivityMainBinding;
+import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 
 import android.widget.Toast;
 
@@ -41,7 +43,10 @@ public class MainActivity extends AppCompatActivity implements RecyclerViewInter
     private ActivityMainBinding binding;
 
     private RecyclerViewAdapter adapter;
+    private AlarmManager alarmManager;
     public ArrayList<ReminderModel> reminders = new ArrayList<>();
+    public static int position;
+    boolean hasNotificationPermissionGranted = false;
 
     @SuppressLint("NotifyDataSetChanged")
     ActivityResultLauncher<Intent> createReminderActivityResultLauncher = registerForActivityResult(
@@ -62,7 +67,6 @@ public class MainActivity extends AppCompatActivity implements RecyclerViewInter
                 }
             });
 
-    private int position;
 
     @SuppressLint("NotifyDataSetChanged")
     ActivityResultLauncher<Intent> editReminderActivityResultLauncher = registerForActivityResult(
@@ -82,11 +86,61 @@ public class MainActivity extends AppCompatActivity implements RecyclerViewInter
                 }
             });
 
+    private final ActivityResultLauncher<String> notificationPermissionLauncher = registerForActivityResult(
+            new ActivityResultContracts.RequestPermission(),
+            isGranted -> {
+                hasNotificationPermissionGranted = isGranted;
+                if (!isGranted) {
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                        if (Build.VERSION.SDK_INT >= 33) {
+                            if (shouldShowRequestPermissionRationale(android.Manifest.permission.POST_NOTIFICATIONS)) {
+                                showNotificationPermissionRationale();
+                            } else {
+                                showSettingDialog();
+                            }
+                        }
+                    }
+                } else {
+                    Toast.makeText(getApplicationContext(), "notification permission granted", Toast.LENGTH_SHORT).show();
+                }
+            });
+
+    private void showSettingDialog() {
+        new MaterialAlertDialogBuilder(this, com.google.android.material.R.style.MaterialAlertDialog_Material3)
+                .setTitle("Notification Permission")
+                .setMessage("Notification permission is required, Please allow notification permission from setting")
+                .setPositiveButton("Ok", (dialog, which) -> {
+                    Intent intent = new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
+                    intent.setData(Uri.parse("package:" + getPackageName()));
+                    startActivity(intent);
+                })
+                .setNegativeButton("Cancel", null)
+                .show();
+    }
+
+    private void showNotificationPermissionRationale() {
+        new MaterialAlertDialogBuilder(this, com.google.android.material.R.style.MaterialAlertDialog_Material3)
+                .setTitle("Alert")
+                .setMessage("Notification permission is required, to show notification")
+                .setPositiveButton("Ok", (dialog, which) -> {
+                    if (Build.VERSION.SDK_INT >= 33) {
+                        notificationPermissionLauncher.launch(android.Manifest.permission.POST_NOTIFICATIONS);
+                    }
+                })
+                .setNegativeButton("Cancel", null)
+                .show();
+    }
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         binding = ActivityMainBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
+        if (Build.VERSION.SDK_INT >= 33) {
+            notificationPermissionLauncher.launch(android.Manifest.permission.POST_NOTIFICATIONS);
+        } else {
+            hasNotificationPermissionGranted = true;
+        }
         createNotificationChannel();
 
         setSupportActionBar(binding.toolbar);
@@ -129,11 +183,11 @@ public class MainActivity extends AppCompatActivity implements RecyclerViewInter
             notificationManager.createNotificationChannel(channel);
         }
     }
-    private int reqCode = 3;
+    private int reqCode = 2;
 
     @SuppressLint("ScheduleExactAlarm")
     private void setAlarm(@NonNull ReminderModel reminder, boolean isEditAlarmAtPos) {
-        AlarmManager alarmManager = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
+        alarmManager = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
         Intent intent = new Intent(MainActivity.this, AlarmReceiver.class);
         intent.putExtra("title", reminder.getTitle());
         intent.putExtra("content", reminder.getContent());
@@ -146,22 +200,28 @@ public class MainActivity extends AppCompatActivity implements RecyclerViewInter
         calendar.setTimeInMillis(reminder.getDate().getTime());
         alarmManager.setExact(AlarmManager.RTC_WAKEUP, calendar.getTimeInMillis(), pendingIntent);
 
-        Toast.makeText(this, "Reminder set successfully", Toast.LENGTH_SHORT).show();
+        if (isEditAlarmAtPos) {
+            Toast.makeText(this, "Reminder edited successfully", Toast.LENGTH_SHORT).show();
+        } else {
+            Toast.makeText(this, "Reminder set successfully", Toast.LENGTH_SHORT).show();
+        }
     }
     private void setAlarm(ReminderModel reminder) {
         setAlarm(reminder, false);
     }
     private void editAlarm(int position, ReminderModel reminder) {
         ReminderModel oldReminder = reminders.get(position);
-
         cancelAlarm(oldReminder);
         setAlarm(reminder, true);
     }
-
     private void cancelAlarm(ReminderModel oldReminder) {
-        AlarmManager alarmManager = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
+        if (alarmManager == null) {
+            alarmManager = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
+        }
         Intent intent = new Intent(MainActivity.this, AlarmReceiver.class);
-        PendingIntent pendingIntent = PendingIntent.getBroadcast(MainActivity.this, position, intent, PendingIntent.FLAG_MUTABLE);
+        intent.putExtra("title", oldReminder.getTitle());
+        intent.putExtra("content", oldReminder.getContent());
+        PendingIntent pendingIntent = PendingIntent.getBroadcast(MainActivity.this, reqCode, intent, PendingIntent.FLAG_MUTABLE);
         alarmManager.cancel(pendingIntent);
     }
 

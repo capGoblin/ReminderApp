@@ -1,5 +1,6 @@
 package com.example.reminderapp.receivers;
 
+import android.app.Activity;
 import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -14,7 +15,6 @@ import com.example.reminderapp.R;
 import com.example.reminderapp.activities.MainActivity;
 
 public class AlarmReceiver extends BroadcastReceiver {
-
     @Override
     public void onReceive(Context context, Intent intent) {
         Intent i = new Intent(context, MainActivity.class);
@@ -26,8 +26,6 @@ public class AlarmReceiver extends BroadcastReceiver {
     }
 
     private void createNotification(Context context, PendingIntent pd, String title, String content) {
-        System.out.println("TITLE" + title);
-        System.out.println("CONTENT" + content);
         NotificationCompat.Builder builder = new NotificationCompat.Builder(context, "reminder_channel")
                 .setSmallIcon(R.drawable.baseline_access_alarm_24)
                 .setContentTitle(title)

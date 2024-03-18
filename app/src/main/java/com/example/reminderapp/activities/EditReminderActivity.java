@@ -81,12 +81,12 @@ public class EditReminderActivity extends AppCompatActivity {
 
         Date selectedDate = calendar.getTime();
 
-        if (title.isEmpty() || content.isEmpty()) {
+        if(title.isEmpty() || content.isEmpty()) {
+            Toast.makeText(this, "Please fill all the fields", Toast.LENGTH_SHORT).show();
             return;
         }
 
         ReminderModel reminder = new ReminderModel(title, content, selectedDate);
-        Toast.makeText(this, "Reminder edited successfully", Toast.LENGTH_SHORT).show();
         Intent resultIntent = new Intent();
         resultIntent.putExtra("editedReminder", reminder);
         setResult(RESULT_OK, resultIntent);

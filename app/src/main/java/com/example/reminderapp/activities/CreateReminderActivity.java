@@ -47,6 +47,11 @@ public class CreateReminderActivity extends AppCompatActivity {
 
         Date selectedDate = getDate();
 
+        if(title.isEmpty() || content.isEmpty()) {
+            Toast.makeText(this, "Please fill all the fields", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
         ReminderModel reminder = new ReminderModel(title, content, selectedDate);
         System.out.println("selectedDate" + selectedDate);
 
@@ -69,7 +74,6 @@ public class CreateReminderActivity extends AppCompatActivity {
     }
 
     private void saveReminder(ReminderModel reminder) {
-        Toast.makeText(this, "Reminder created successfully", Toast.LENGTH_SHORT).show();
         Intent resultIntent = new Intent();
         resultIntent.putExtra("newReminder", reminder);
         setResult(RESULT_OK, resultIntent);
